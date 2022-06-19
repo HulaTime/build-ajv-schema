@@ -1,33 +1,49 @@
 import Ajv from 'ajv';
-// import { FormatName } from 'ajv-formats';
 
-type BasicType = 'string' | 'integer' | 'number' | 'boolean' | 'array' | 'object' | 'null'
+import BasicProperty from './BasicProperty';
+import ObjectProperty from './ObjectProperty';
+import { BasicSchemaProperty, ISchema, ObjectSchemaProperty, PropertyTypes, } from './types';
 
-interface Property {
-  type: 'object';
-  properties: ObjectProperty | BasicProperty;
-  required: string[];
-  additionalProperties?: boolean;
-}
+const isObjectProperty = (prop: BasicProperty | ObjectProperty): prop is ObjectProperty =>
+  prop instanceof ObjectProperty;
 
-type BaseSchema = Property;
+const compileBasicProperty = (basicProperty: BasicProperty): BasicSchemaProperty => ({
+  type: basicProperty.type,
+  // format: property.format
+});
 
-interface BasicProperty {
-  [key: string]: {
-    type: BasicType;
-    // format?: FormatName;
+const objectPropertyReducer = (
+  objectSchemaProp: ObjectSchemaProperty,
+  property: BasicProperty | ObjectProperty
+): ObjectSchemaProperty => {
+  if (!objectSchemaProp.required) {
+    objectSchemaProp.required = [];
+  }
+  if (property.isRequired) {
+    objectSchemaProp.required.push(property.name);
+  }
+  if (isObjectProperty(property)) {
+    objectSchemaProp.additionalProperties = property.additionalProperties;
+    objectSchemaProp.properties[property.name] = compileObjectProperty(property);
+  } else {
+    objectSchemaProp.properties[property.name] = compileBasicProperty(property);
+  }
+  return objectSchemaProp;
+};
+
+const compileObjectProperty = (property: ObjectProperty): ObjectSchemaProperty => {
+  const initialObjectSchema: ObjectSchemaProperty = {
+    type: PropertyTypes.object,
+    properties: {},
   };
-}
-
-interface ObjectProperty {
-  [key: string]: Property;
-}
+  return property.childProperties.reduce(objectPropertyReducer, initialObjectSchema);
+};
 
 export default class Schema {
   private ajv = new Ajv();
 
-  private schema: BaseSchema = {
-    type: 'object',
+  private schema: ISchema = {
+    type: PropertyTypes.object,
     properties: {},
     required: [],
     additionalProperties: true
@@ -39,20 +55,30 @@ export default class Schema {
     }
   }
 
-  public addProperty(name: string, type: BasicType, isRequired = false): void {
-    this.schema.properties[name] = { type };
-    if (isRequired) this.schema.required.push(name);
+  public addProperty(property: BasicProperty | ObjectProperty): Schema {
+    if (isObjectProperty(property)) {
+      this.schema.properties[property.name] = compileObjectProperty(property);
+    } else {
+      this.schema.properties[property.name] = compileBasicProperty(property);
+    }
+    if (property.isRequired) {
+      if (!this.schema.required) {
+        this.schema.required = [];
+      }
+      this.schema.required.push(property.name);
+    }
     try {
       this.ajv.compile(this.schema);
+      return this;
     } catch (err: any) {
-      if (err instanceof Error && err.message.includes(`data/properties/${name}/type`)) {
-        throw new Error(`${type} is not a valid property type`);
+      if (err instanceof Error && err.message.includes(`data/properties/${property.name}/type`)) {
+        throw new Error(`${property.type} is not a valid property type`);
       }
       throw err;
     }
   }
 
-  public generate(): Property {
+  public generate(): ISchema {
     return this.schema;
   }
 }

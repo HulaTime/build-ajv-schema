@@ -1,7 +1,6 @@
 {
-  "name": "ajv-schema-builder",
+  "name": "build-ajv-schema",
   "version": "0.1.0",
-  "private": true,
   "dependencies": {
     "ajv": "^8.11.0",
     "ajv-formats": "^2.1.1"

@@ -1,0 +1,46 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "firstName",
+    "lastName",
+    "age",
+    "address"
+  ],
+  "properties": {
+    "firstName": {
+      "type": "string"
+    },
+    "lastName": {
+      "type": "string"
+    },
+    "address": {
+      "type": "object",
+      "required": [
+        "firstLine",
+        "postCode",
+        "city"
+      ],
+      "properties": {
+        "firstLine": {
+          "type": "string"
+        },
+        "secondLine": {
+          "type": "string"
+        },
+        "postCode": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        }
+      }
+    },
+    "age": {
+      "type": "integer"
+    },
+    "weight": {
+      "type": "number"
+    }
+  }
+}

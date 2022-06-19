@@ -9,7 +9,15 @@ module.exports = {
   rules: {
     'array-bracket-spacing': ['error', 'never'],
     'eol-last': ['error', 'always'],
+    'newline-per-chained-call': ['error', {
+      ignoreChainWithDepth: 1,
+    }],
     'object-curly-spacing': ['error', 'always'],
+    'lines-between-class-members': 'error',
+    'max-len': ['error', {
+      code: 110,
+      ignoreStrings: true,
+    }],
     semi: ['error', 'always'],
     quotes: ['error', 'single'],
     '@typescript-eslint/explicit-function-return-type': 'error',
@@ -19,7 +27,7 @@ module.exports = {
       },
       singleline: {
         delimiter: 'semi'
-      }
+      },
     }]
   }
 };
