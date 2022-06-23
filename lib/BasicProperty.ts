@@ -1,6 +1,4 @@
-import { PropertyTypes } from './types';
-
-type BasicPropertyTypes = Exclude<PropertyTypes, PropertyTypes.object>;
+import { BasicPropertyTypes } from './types';
 
 export interface IBasicProperty {
   name: string;

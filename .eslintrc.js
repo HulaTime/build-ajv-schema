@@ -10,10 +10,12 @@ module.exports = {
     'array-bracket-spacing': ['error', 'never'],
     'eol-last': ['error', 'always'],
     'newline-per-chained-call': ['error', {
-      ignoreChainWithDepth: 1,
+      ignoreChainWithDepth: 2,
     }],
     'object-curly-spacing': ['error', 'always'],
     'lines-between-class-members': 'error',
+    'no-whitespace-before-property': 'error',
+    indent: ['error', 2],
     'max-len': ['error', {
       code: 110,
       ignoreStrings: true,

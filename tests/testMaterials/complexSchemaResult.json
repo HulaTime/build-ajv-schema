@@ -16,6 +16,7 @@
     },
     "address": {
       "type": "object",
+      "additionalProperties": false,
       "required": [
         "firstLine",
         "postCode",
@@ -33,6 +34,19 @@
         },
         "city": {
           "type": "string"
+        },
+        "meta": {
+          "type": "object",
+          "required": [],
+          "additionalProperties": true,
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "description": {
+              "type": "string"
+            }
+          }
         }
       }
     },

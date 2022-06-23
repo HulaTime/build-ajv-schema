@@ -2,7 +2,7 @@ import Ajv from 'ajv';
 
 import BasicProperty from './BasicProperty';
 import ObjectProperty from './ObjectProperty';
-import { BasicSchemaProperty, ISchema, ObjectSchemaProperty, PropertyTypes, } from './types';
+import { BasicSchemaProperty, ISchema, ObjectPropertyTypes, ObjectSchemaProperty, } from './types';
 
 const isObjectProperty = (prop: BasicProperty | ObjectProperty): prop is ObjectProperty =>
   prop instanceof ObjectProperty;
@@ -16,14 +16,10 @@ const objectPropertyReducer = (
   objectSchemaProp: ObjectSchemaProperty,
   property: BasicProperty | ObjectProperty
 ): ObjectSchemaProperty => {
-  if (!objectSchemaProp.required) {
-    objectSchemaProp.required = [];
-  }
   if (property.isRequired) {
     objectSchemaProp.required.push(property.name);
   }
   if (isObjectProperty(property)) {
-    objectSchemaProp.additionalProperties = property.additionalProperties;
     objectSchemaProp.properties[property.name] = compileObjectProperty(property);
   } else {
     objectSchemaProp.properties[property.name] = compileBasicProperty(property);
@@ -33,7 +29,9 @@ const objectPropertyReducer = (
 
 const compileObjectProperty = (property: ObjectProperty): ObjectSchemaProperty => {
   const initialObjectSchema: ObjectSchemaProperty = {
-    type: PropertyTypes.object,
+    type: ObjectPropertyTypes.object,
+    additionalProperties: property.additionalProperties,
+    required: [],
     properties: {},
   };
   return property.childProperties.reduce(objectPropertyReducer, initialObjectSchema);
@@ -43,10 +41,10 @@ export default class Schema {
   private ajv = new Ajv();
 
   private schema: ISchema = {
-    type: PropertyTypes.object,
+    type: ObjectPropertyTypes.object,
     properties: {},
     required: [],
-    additionalProperties: true
+    additionalProperties: false
   };
 
   constructor(options?: { allowAdditionalProperties?: boolean }) {
@@ -61,10 +59,10 @@ export default class Schema {
     } else {
       this.schema.properties[property.name] = compileBasicProperty(property);
     }
+    if (!this.schema.required) {
+      this.schema.required = [];
+    }
     if (property.isRequired) {
-      if (!this.schema.required) {
-        this.schema.required = [];
-      }
       this.schema.required.push(property.name);
     }
     try {
