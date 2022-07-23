@@ -89,6 +89,27 @@ describe('Schema', () => {
       expect(property.required).toEqual([]);
     });
 
+    describe('Errors', () => {
+      test('I should get an error if I try and supply an unsupported property type', () => {
+        const addBadPropertyType = (): void => {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          const sillyProperty = new BasicProperty('badprop', 'sillygoose');
+          schema.addProperty(sillyProperty);
+        };
+        expect(addBadPropertyType)
+          .toThrowError('sillygoose is not a valid property type');
+      });
+    });
+  });
+
+  describe('Adding complex properties to the schema', () => {
+    let schema: Schema;
+
+    beforeEach(() => {
+      schema = new Schema();
+    });
+
     test('I can add an object property and it should properly construct a schema based on the property attributes', () => {
       const primaryObjectName = 'user';
       const agePropName = 'age';
@@ -134,46 +155,33 @@ describe('Schema', () => {
       expect(weightSchemaProp.properties[weightValueName].type).toEqual('number');
     });
 
-    describe('Errors', () => {
-      test('I should get an error if I try and supply an unsupported property type', () => {
-        const addBadPropertyType = (): void => {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          const sillyProperty = new BasicProperty('badprop', 'sillygoose');
-          schema.addProperty(sillyProperty);
-        };
-        expect(addBadPropertyType)
-          .toThrowError('sillygoose is not a valid property type');
-      });
+    test('I can build a complex schema with multiple different types and nested attributes', () => {
+      const schema = new Schema({ allowAdditionalProperties: false });
+      const firstName = new BasicProperty('firstName', BasicPropertyTypes.string, true);
+      const lastName = new BasicProperty('lastName', BasicPropertyTypes.string, true);
+      const age = new BasicProperty('age', BasicPropertyTypes.integer, true);
+      const weight = new BasicProperty('weight', BasicPropertyTypes.number, false);
+      const address = new ObjectProperty('address', true)
+        .allowAdditionalProperties(false);
+      const addressMeta = new ObjectProperty('meta');
+      addressMeta
+        .allowAdditionalProperties(true)
+        .addProperty(new BasicProperty('value', BasicPropertyTypes.number))
+        .addProperty(new BasicProperty('description', BasicPropertyTypes.string));
+      address
+        .addProperty(new BasicProperty('firstLine', BasicPropertyTypes.string, true))
+        .addProperty(new BasicProperty('secondLine', BasicPropertyTypes.string, false))
+        .addProperty(new BasicProperty('postCode', BasicPropertyTypes.string, true))
+        .addProperty(new BasicProperty('city', BasicPropertyTypes.string, true))
+        .addProperty(addressMeta);
+      schema
+        .addProperty(firstName)
+        .addProperty(lastName)
+        .addProperty(age)
+        .addProperty(weight)
+        .addProperty(address);
+      expect(schema.generate())
+        .toEqual(complexSchemaResult);
     });
-  });
-
-  test('I can build a complex schema with multiple different types and nested attributes', () => {
-    const schema = new Schema({ allowAdditionalProperties: false });
-    const firstName = new BasicProperty('firstName', BasicPropertyTypes.string, true);
-    const lastName = new BasicProperty('lastName', BasicPropertyTypes.string, true);
-    const age = new BasicProperty('age', BasicPropertyTypes.integer, true);
-    const weight = new BasicProperty('weight', BasicPropertyTypes.number, false);
-    const address = new ObjectProperty('address', true)
-      .allowAdditionalProperties(false);
-    const addressMeta = new ObjectProperty('meta');
-    addressMeta
-      .allowAdditionalProperties(true)
-      .addProperty(new BasicProperty('value', BasicPropertyTypes.number))
-      .addProperty(new BasicProperty('description', BasicPropertyTypes.string));
-    address
-      .addProperty(new BasicProperty('firstLine', BasicPropertyTypes.string, true))
-      .addProperty(new BasicProperty('secondLine', BasicPropertyTypes.string, false))
-      .addProperty(new BasicProperty('postCode', BasicPropertyTypes.string, true))
-      .addProperty(new BasicProperty('city', BasicPropertyTypes.string, true))
-      .addProperty(addressMeta);
-    schema
-      .addProperty(firstName)
-      .addProperty(lastName)
-      .addProperty(age)
-      .addProperty(weight)
-      .addProperty(address);
-    expect(schema.generate())
-      .toEqual(complexSchemaResult);
   });
 });
